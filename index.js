@@ -8,9 +8,11 @@ const verifyNpmAuth = require('./lib/verify-auth');
 const addChannelNpm = require('./lib/add-channel');
 const prepareNpm = require('./lib/prepare');
 const publishNpm = require('./lib/publish');
+const getPkgInfo = require('./lib/get-pkg-info');
 
 let verified;
 let prepared;
+let lernaPkgInfo;
 const npmrc = tempy.file({name: '.npmrc'});
 
 async function verifyConditions(pluginConfig, context) {
@@ -29,11 +31,14 @@ async function verifyConditions(pluginConfig, context) {
   setLegacyToken(context);
 
   try {
-    const pkg = await getPkg(pluginConfig, context);
+    lernaPkgInfo = await getPkgInfo(pluginConfig, context);
 
     // Verify the npm authentication only if `npmPublish` is not false and `pkg.private` is not `true`
-    if (pluginConfig.npmPublish !== false && pkg.private !== true) {
-      await verifyNpmAuth(npmrc, pkg, context);
+    for (const pkgInfo of lernaPkgInfo.filter((pkg) => pkg.changed)) {
+      const pkg = await getPkg(pkgInfo);
+      if (pluginConfig.npmPublish !== false && pkg.private !== true) {
+        await verifyNpmAuth(npmrc, pkg, context);
+      }
     }
   } catch (error) {
     errors.push(...error);
@@ -52,10 +57,14 @@ async function prepare(pluginConfig, context) {
   setLegacyToken(context);
 
   try {
+    lernaPkgInfo = await getPkgInfo(pluginConfig, context);
+
     // Reload package.json in case a previous external step updated it
-    const pkg = await getPkg(pluginConfig, context);
-    if (!verified && pluginConfig.npmPublish !== false && pkg.private !== true) {
-      await verifyNpmAuth(npmrc, pkg, context);
+    for (const pkgInfo of lernaPkgInfo.filter((pkg) => pkg.changed)) {
+      const pkg = await getPkg(pkgInfo);
+      if (!verified && pluginConfig.npmPublish !== false && pkg.private !== true) {
+        await verifyNpmAuth(npmrc, pkg, context);
+      }
     }
   } catch (error) {
     errors.push(...error);
@@ -65,7 +74,7 @@ async function prepare(pluginConfig, context) {
     throw new AggregateError(errors);
   }
 
-  await prepareNpm(npmrc, pluginConfig, context);
+  await prepareNpm(npmrc, pluginConfig, lernaPkgInfo, context);
   prepared = true;
 }
 
@@ -76,10 +85,16 @@ async function publish(pluginConfig, context) {
   setLegacyToken(context);
 
   try {
+    if (!prepared) {
+      lernaPkgInfo = await getPkgInfo(pluginConfig, context);
+    }
+
     // Reload package.json in case a previous external step updated it
-    pkg = await getPkg(pluginConfig, context);
-    if (!verified && pluginConfig.npmPublish !== false && pkg.private !== true) {
-      await verifyNpmAuth(npmrc, pkg, context);
+    for (const pkgInfo of lernaPkgInfo.filter((pkg) => pkg.changed)) {
+      const pkg = await getPkg(pkgInfo);
+      if (!verified && pluginConfig.npmPublish !== false && pkg.private !== true) {
+        await verifyNpmAuth(npmrc, pkg, context);
+      }
     }
   } catch (error) {
     errors.push(...error);
@@ -90,10 +105,10 @@ async function publish(pluginConfig, context) {
   }
 
   if (!prepared) {
-    await prepareNpm(npmrc, pluginConfig, context);
+    await prepareNpm(npmrc, pluginConfig, lernaPkgInfo, context);
   }
 
-  return publishNpm(npmrc, pluginConfig, pkg, context);
+  return publishNpm(npmrc, pluginConfig, lernaPkgInfo, context);
 }
 
 async function addChannel(pluginConfig, context) {
@@ -104,9 +119,11 @@ async function addChannel(pluginConfig, context) {
 
   try {
     // Reload package.json in case a previous external step updated it
-    pkg = await getPkg(pluginConfig, context);
-    if (!verified && pluginConfig.npmPublish !== false && pkg.private !== true) {
-      await verifyNpmAuth(npmrc, pkg, context);
+    for (const pkgInfo of lernaPkgInfo.filter((pkg) => pkg.changed)) {
+      const pkg = await getPkg(pkgInfo);
+      if (!verified && pluginConfig.npmPublish !== false && pkg.private !== true) {
+        await verifyNpmAuth(npmrc, pkg, context);
+      }
     }
   } catch (error) {
     errors.push(...error);
@@ -116,7 +133,7 @@ async function addChannel(pluginConfig, context) {
     throw new AggregateError(errors);
   }
 
-  return addChannelNpm(npmrc, pluginConfig, pkg, context);
+  return addChannelNpm(npmrc, pluginConfig, lernaPkgInfo, context);
 }
 
 module.exports = {verifyConditions, prepare, publish, addChannel};

@@ -79,6 +79,7 @@
     "semantic-release": ">=16.0.0 <18.0.0"
   },
   "prettier": {
+    "endOfLine": "auto",
     "printWidth": 120,
     "trailingComma": "es5"
   },
