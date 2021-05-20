@@ -1,4 +1,4 @@
-# @semantic-release/npm
+# semantic-release-lerna
 
 [**semantic-release**](https://github.com/semantic-release/semantic-release) plugin to publish a [npm](https://www.npmjs.com) package.
 

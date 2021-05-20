@@ -1,8 +1,8 @@
 {
-  "name": "@semantic-release/npm",
+  "name": "semantic-release-lerna",
   "description": "semantic-release plugin to publish a npm package",
   "version": "0.0.0-development",
-  "author": "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
+  "author": "Timothy Johnson",
   "ava": {
     "files": [
       "test/**/*.test.js"
@@ -10,9 +10,10 @@
     "timeout": "2m"
   },
   "bugs": {
-    "url": "https://github.com/semantic-release/npm/issues"
+    "url": "https://github.com/t1m0thyj/semantic-release-lerna/issues"
   },
   "contributors": [
+    "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
     "Stephan Bönnemann <stephan@boennemann.me> (http://boennemann.me)",
     "Gregor Martynus (https://twitter.com/gr2m)"
   ],
@@ -53,7 +54,7 @@
     "lib",
     "index.js"
   ],
-  "homepage": "https://github.com/semantic-release/npm#readme",
+  "homepage": "https://github.com/t1m0thyj/semantic-release-lerna#readme",
   "keywords": [
     "npm",
     "publish",
@@ -88,7 +89,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/semantic-release/npm.git"
+    "url": "https://github.com/t1m0thyj/semantic-release-lerna.git"
   },
   "scripts": {
     "codecov": "codecov -f coverage/coverage-final.json",
